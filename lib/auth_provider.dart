@@ -31,7 +31,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> signIn(String email, String password) async {
     try {
-      _errorMessage = null; // Clear previous errors
+      _errorMessage = null;
       final response = await supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -53,7 +53,12 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> signUp(String email, String password) async {
     try {
       _errorMessage = null;
-      await supabase.auth.signUp(email: email, password: password);
+      final response = await supabase.auth.signUp(
+        email: email,
+        password: password,
+      );
+      _user = response.user;
+      notifyListeners();
       return true;
     } on AuthException catch (e) {
       _errorMessage = _getUserFriendlyError(e.message);

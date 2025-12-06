@@ -40,7 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else if (mounted) {
-      // ✅ context.read() → authProvider.errorMessage → Snackbar
       final error = authProvider.errorMessage;
 
       ScaffoldMessenger.of(
