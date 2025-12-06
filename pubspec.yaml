@@ -1,0 +1,30 @@
+name: extra
+description: "An Expense Tracker app"
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  cupertino_icons: ^1.0.8
+  flutter:
+    sdk: flutter
+  flutter_dotenv: ^6.0.0
+  google_fonts: 6.3.3
+  image_picker: ^1.2.1
+  provider: ^6.0.5
+  shared_preferences: ^2.0.6
+  supabase_flutter: ^2.5.0
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env
