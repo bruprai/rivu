@@ -1,10 +1,10 @@
 import 'package:extra/auth_provider.dart';
+import 'package:extra/core/auth_wrapper.dart';
 import 'package:extra/home_screen.dart';
 import 'package:extra/core/theme.dart';
 import 'package:extra/theme_provider.dart';
 import 'package:extra/transaction_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -41,11 +41,12 @@ class ExtraApp extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Extra',
       themeMode: themeProvider.themeMode,
       theme: lightTheme,
       darkTheme: darkTheme,
-      home: const HomeScreen(),
+      home: const AuthWrapper(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
