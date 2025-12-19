@@ -61,7 +61,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } on AuthException catch (e) {
-      _errorMessage = _getUserFriendlyError(e.message);
+      _errorMessage = _getUserFriendlyError(e.code!);
       notifyListeners();
       return false;
     } catch (e) {

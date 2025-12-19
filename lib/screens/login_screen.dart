@@ -58,111 +58,117 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.transparent,
         actions: const [ThemeToggle(), SizedBox(width: 16)],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                'assets/logo.svg',
-                semanticsLabel: 'Rivu logo',
-                width: 80,
-              ),
-              const SizedBox(height: 8),
-              SvgPicture.asset(
-                'assets/rivu-slogan.svg',
-                width: 160,
-                semanticsLabel: 'Rivu slogan',
-                colorFilter: const ColorFilter.mode(
-                  AppColors.logo,
-                  BlendMode.srcIn,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: .start,
+              children: [
+                const SizedBox(height: 48),
+                SvgPicture.asset(
+                  'assets/logo.svg',
+                  semanticsLabel: 'Rivu logo',
+                  width: 80,
                 ),
-              ),
-              const SizedBox(height: 48),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: const Icon(Icons.email),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 8),
+                SvgPicture.asset(
+                  'assets/rivu-slogan.svg',
+                  width: 160,
+                  semanticsLabel: 'Rivu slogan',
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.logo,
+                    BlendMode.srcIn,
                   ),
                 ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Enter email' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Enter password' : null,
-              ),
-              if (!_isLogin) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 96),
                 TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: true,
+                  controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    prefixIcon: Icon(
-                      Icons.lock_outline,
-                      color: AppColors.primary,
-                    ),
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    filled: true,
-                    fillColor: isDark
-                        ? AppColors.glassDark
-                        : AppColors.glassLight,
                   ),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) return 'Confirm password';
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Enter email' : null,
                 ),
-              ],
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey,
-                    shape: RoundedRectangleBorder(
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock),
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text(_isLogin ? 'Login' : 'Sign Up'),
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Enter password' : null,
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => setState(() => _isLogin = !_isLogin),
-                child: Text(
-                  _isLogin
-                      ? 'Need an account? Sign up'
-                      : 'Have an account? Login',
+                if (!_isLogin) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
+                      prefixIcon: Icon(
+                        Icons.lock_outline,
+                        color: AppColors.primary,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: isDark
+                          ? AppColors.glassDark
+                          : AppColors.glassLight,
+                    ),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) return 'Confirm password';
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      _isLogin ? 'Login' : 'Sign Up',
+                      style: TextStyle(fontWeight: .bold, fontSize: 16),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => setState(() => _isLogin = !_isLogin),
+                  child: Text(
+                    _isLogin
+                        ? 'Need an account? Sign up'
+                        : 'Have an account? Login',
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
