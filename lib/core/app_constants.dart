@@ -1,5 +1,5 @@
-import 'package:extra/core/colors.dart';
-import 'package:extra/core/gradients.dart';
+import 'package:rivu/core/colors.dart';
+import 'package:rivu/core/gradients.dart';
 import 'package:flutter/material.dart';
 
 class AppConstants {

@@ -1,6 +1,6 @@
 // lib/screens/email_verification_screen.dart
-import 'package:extra/auth_provider.dart';
-import 'package:extra/core/colors.dart';
+import 'package:rivu/auth_provider.dart';
+import 'package:rivu/core/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

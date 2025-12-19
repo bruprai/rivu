@@ -1,5 +1,6 @@
 // lib/screens/login_screen.dart - Updated with Signup
-import 'package:extra/auth_provider.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:rivu/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/colors.dart';
@@ -53,7 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isLogin ? 'Login' : 'Sign Up'),
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: const [ThemeToggle(), SizedBox(width: 16)],
@@ -65,12 +65,22 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.account_balance_wallet,
-                size: 80,
-                color: AppColors.primary,
+              SvgPicture.asset(
+                'assets/logo.svg',
+                semanticsLabel: 'Rivu logo',
+                width: 80,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 8),
+              SvgPicture.asset(
+                'assets/rivu-slogan.svg',
+                width: 160,
+                semanticsLabel: 'Rivu slogan',
+                colorFilter: const ColorFilter.mode(
+                  AppColors.logo,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(height: 48),
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(

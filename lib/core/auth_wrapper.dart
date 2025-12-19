@@ -1,6 +1,6 @@
 // lib/core/auth_wrapper.dart - Auth Check + Routing
-import 'package:extra/auth_provider.dart';
-import 'package:extra/home_screen.dart';
+import 'package:rivu/auth_provider.dart';
+import 'package:rivu/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../screens/login_screen.dart';

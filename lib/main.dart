@@ -1,9 +1,9 @@
-import 'package:extra/auth_provider.dart';
-import 'package:extra/core/auth_wrapper.dart';
-import 'package:extra/home_screen.dart';
-import 'package:extra/core/theme.dart';
-import 'package:extra/theme_provider.dart';
-import 'package:extra/transaction_provider.dart';
+import 'package:rivu/auth_provider.dart';
+import 'package:rivu/core/auth_wrapper.dart';
+import 'package:rivu/home_screen.dart';
+import 'package:rivu/core/theme.dart';
+import 'package:rivu/theme_provider.dart';
+import 'package:rivu/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

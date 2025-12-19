@@ -1,10 +1,10 @@
 // lib/widgets/glass_transaction_form.dart
 import 'dart:io';
 import 'dart:ui';
-import 'package:extra/auth_provider.dart';
-import 'package:extra/core/app_constants.dart';
-import 'package:extra/models/store.dart';
-import 'package:extra/transaction_provider.dart';
+import 'package:rivu/auth_provider.dart';
+import 'package:rivu/core/app_constants.dart';
+import 'package:rivu/models/store.dart';
+import 'package:rivu/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';

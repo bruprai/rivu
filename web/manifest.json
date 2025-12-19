@@ -1,6 +1,6 @@
 {
-    "name": "extra",
-    "short_name": "extra",
+    "name": "rivu",
+    "short_name": "rivu",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

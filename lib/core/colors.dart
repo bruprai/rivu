@@ -21,7 +21,7 @@ class AppColors {
     0xFF6366F1,
   ); // Indigo - Trust + Intelligence
   static const Color primaryDark = Color(0xFF4F46E5); // Primary Dark
-
+  static const Color logo = Color.fromARGB(247, 241, 198, 27);
   // Status Colors
   static const Color success = Color(0xFF10B981); // Emerald - Money in
   static const Color warning = Color(0xFFF59E0B); // Amber - Close to budget

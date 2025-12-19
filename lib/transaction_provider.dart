@@ -1,5 +1,5 @@
-import 'package:extra/models/store.dart';
-import 'package:extra/models/transaction.dart';
+import 'package:rivu/models/store.dart';
+import 'package:rivu/models/transaction.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
