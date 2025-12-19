@@ -1,4 +1,3 @@
-// lib/widgets/theme_toggle.dart - FIXED Clickable Dropdown
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme_provider.dart';
@@ -24,12 +23,11 @@ class ThemeToggle extends StatelessWidget {
           color: Theme.of(context).brightness == Brightness.dark
               ? AppColors.surfaceDark
               : AppColors.surfaceLight,
-          enabled: true, // ✅ Always enabled
+          enabled: true,
           itemBuilder: (context) => [
-            // Light Theme - ✅ FIXED: enabled: true
             PopupMenuItem(
               value: ThemeMode.light,
-              enabled: true, // ✅ Always clickable
+              enabled: true,
               child: Row(
                 children: [
                   Icon(Icons.light_mode, color: AppColors.primary),
@@ -41,10 +39,10 @@ class ThemeToggle extends StatelessWidget {
                 ],
               ),
             ),
-            // Dark Theme - ✅ FIXED: enabled: true
+
             PopupMenuItem(
               value: ThemeMode.dark,
-              enabled: true, // ✅ Always clickable
+              enabled: true,
               child: Row(
                 children: [
                   Icon(Icons.dark_mode, color: AppColors.primary),
@@ -57,10 +55,10 @@ class ThemeToggle extends StatelessWidget {
               ),
             ),
             const PopupMenuDivider(),
-            // System Theme - Pre-selected
+
             PopupMenuItem(
               value: ThemeMode.system,
-              enabled: true, // ✅ Always clickable
+              enabled: true,
               child: Row(
                 children: [
                   Icon(Icons.brightness_auto, color: AppColors.primary),
@@ -74,20 +72,21 @@ class ThemeToggle extends StatelessWidget {
             ),
           ],
           onSelected: (ThemeMode mode) {
-            ScaffoldMessenger.of(context).clearSnackBars();
+            //   ScaffoldMessenger.of(context).clearSnackBars();
             themeProvider.setTheme(mode);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Theme: ${mode.name.toUpperCase()}'),
-                backgroundColor: AppColors.primary,
-                duration: const Duration(milliseconds: 1200),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                margin: const EdgeInsets.all(16),
-              ),
-            );
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   SnackBar(
+            //     content: Text('Theme: ${mode.name.toUpperCase()}'),
+            //     backgroundColor: AppColors.primary,
+            //     duration: const Duration(milliseconds: 1200),
+            //     behavior: SnackBarBehavior.fixed,
+
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(12),
+            //     ),
+            //     margin: const EdgeInsets.all(16),
+            //   ),
+            // );
           },
         );
       },

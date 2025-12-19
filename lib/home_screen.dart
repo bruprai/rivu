@@ -1,6 +1,10 @@
+import 'package:extra/core/app_constants.dart';
 import 'package:extra/core/colors.dart';
+import 'package:extra/models/store.dart';
 import 'package:extra/models/transaction.dart';
-import 'package:extra/widgets/gl_transaction_form.dart';
+import 'package:extra/theme_provider.dart';
+import 'package:extra/widgets/manage_items_dialog.dart';
+import 'package:extra/widgets/transaction_form.dart';
 import 'package:extra/widgets/theme_toggle.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,43 +18,109 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool isDelayed = true;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<TransactionProvider>(
-        context,
-        listen: false,
-      ).fetchTransactions();
+      _loadData();
+      Future.delayed(Duration(milliseconds: 2500), () {
+        setState(() {
+          isDelayed = false;
+        });
+      });
     });
+  }
+
+  Future<void> _loadData() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final txProvider = Provider.of<TransactionProvider>(context, listen: false);
+    if (authProvider.isLoggedIn) {
+      txProvider.setCurrentUser(authProvider.user!.id);
+      await txProvider.fetchUserData(authProvider.user!.id);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final transactionProvider = context.watch<TransactionProvider>();
+    return Consumer3<AuthProvider, TransactionProvider, ThemeProvider>(
+      builder: (context, authProvider, txProvider, themeProvider, child) {
+        if (txProvider.isLoading || isDelayed) {
+          return Scaffold(
+            body: Center(child: Image.asset('assets/rivu-no-background.gif')),
+          );
+        }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Welcome, ${authProvider.user?.email ?? 'Guest'}'),
-        actions: [
-          const ThemeToggle(),
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () {
-              authProvider.signOut();
-            },
+        if (txProvider.errorMessage != null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Extra')),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error: ${txProvider.errorMessage}'),
+                  ElevatedButton(
+                    onPressed: _loadData,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              'Welcome, ${authProvider.user?.email!.split("@")[0] ?? 'Guest'}',
+            ),
+            actions: [
+              const ThemeToggle(),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: () => authProvider.signOut(),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: _buildTransactionsList(transactionProvider),
-
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddTransactionDialog(context);
-        },
-        child: Icon(Icons.add),
-      ),
+          body: _buildTransactionsList(txProvider),
+          floatingActionButton: Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 80),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  FloatingActionButton(
+                    heroTag: "add_tx",
+                    onPressed: () => _showAddTransactionDialog(context),
+                    child: const Icon(Icons.add),
+                  ),
+                  const SizedBox(height: 10),
+                  FloatingActionButton(
+                    heroTag: "manage_accounts",
+                    mini: true,
+                    onPressed: () => _showManageBottomSheet('Accounts'),
+                    child: const Icon(Icons.account_balance_wallet),
+                  ),
+                  FloatingActionButton(
+                    heroTag: "manage_categories",
+                    mini: true,
+                    onPressed: () => _showManageBottomSheet('Categories'),
+                    child: const Icon(Icons.category),
+                  ),
+                  FloatingActionButton(
+                    heroTag: "manage_stores",
+                    mini: true,
+                    onPressed: () => _showManageBottomSheet('Stores'),
+                    child: const Icon(Icons.store),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -96,8 +166,33 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, index) {
         final tx = txProvider.transactions[index];
         return ListTile(
+          leading: Container(
+            padding: EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.surfaceDark,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _formatDate(tx.createdAt!).split(' ').first,
+                  style: TextStyle(fontSize: 14),
+                ),
+                Text(
+                  _formatDate(tx.createdAt!).split(' ').last.substring(0, 3),
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
           title: Text(tx.description ?? 'No description'),
-          subtitle: Text(_formatDate(tx.date)),
+          subtitle: Text(
+            txProvider.categories
+                .firstWhere((category) => category.id == tx.categoryId)
+                .name,
+          ),
+
           trailing: Text(
             _formatAmount(tx.amount),
             style: TextStyle(
@@ -106,30 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
               fontSize: 16,
             ),
           ),
-          //          trailing: Row(
-          //   mainAxisSize: MainAxisSize.min,
-          //   children: [
-          //     if (tx.receiptUrl != null)
-          //       ClipRRect(
-          //         borderRadius: BorderRadius.circular(8),
-          //         child: Image.network(
-          //           tx.receiptUrl!,
-          //           width: 40,
-          //           height: 40,
-          //           fit: BoxFit.cover,
-          //           errorBuilder: (_, __, ___) => Icon(Icons.receipt, size: 20),
-          //         ),
-          //       ),
-          //     // Edit/Delete buttons...
-          //   ],
-          // ),
         );
       },
     );
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    return '${date.day} ${AppConstants.months[date.month - 1]}';
   }
 
   String _formatAmount(double amount) {
@@ -137,14 +215,67 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAddTransactionDialog(BuildContext context) {
-    showDialog(context: context, builder: (_) => GlassTransactionForm());
+    showDialog(context: context, builder: (_) => TransactionForm());
   }
 
-  // Edit transaction
+  void _showManageBottomSheet<T>(String title) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext content) {
+        final height = MediaQuery.of(context).size.height * 0.5;
+        return Container(
+          height: height,
+          padding: EdgeInsets.all(16),
+          child: Consumer<TransactionProvider>(
+            builder: (context, txProvider, child) {
+              return ManageItemsDialog<T>(
+                title: title,
+                items: title == 'Stores'
+                    ? List<T>.from(txProvider.stores as List<T>)
+                    : title == 'Accounts'
+                    ? List<T>.from(txProvider.accounts as List<T>)
+                    : List<T>.from(txProvider.categories as List<T>),
+                onDelete: (T item) async {
+                  if (item is AccountModel) {
+                    return await txProvider.deleteAccount(item.id);
+                  } else if (item is CategoryModel) {
+                    return await txProvider.deleteCategory(item.id);
+                  } else if (item is StoreModel) {
+                    return await txProvider.deleteStore(item.id);
+                  }
+                  return false;
+                },
+                onAdd: (String name) async {
+                  switch (title) {
+                    case 'Accounts':
+                      return await txProvider.addAccount(name);
+                    case 'Categories':
+                      return await txProvider.addCategory(name);
+                    case 'Stores':
+                      return await txProvider.addStore(name);
+                    default:
+                      return false;
+                  }
+                },
+                getName: (item) {
+                  if (item is AccountModel) return item.name;
+                  if (item is CategoryModel) return item.name;
+                  if (item is StoreModel) return item.name;
+                  return 'Unknown';
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   void _editTransaction(BuildContext context, TransactionModel tx) {
     showDialog(
       context: context,
-      builder: (_) => GlassTransactionForm(transaction: tx),
+      builder: (_) => TransactionForm(transaction: tx),
     );
   }
 }

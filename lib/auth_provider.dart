@@ -71,6 +71,8 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  resendVerification() {}
+
   // ✅ Logout
   Future<void> signOut() async {
     await supabase.auth.signOut();
