@@ -41,7 +41,7 @@ class AppConstants {
     'January',
     'February',
     'March',
-    ' April',
+    'April',
     'May',
     'June',
     'July',
@@ -51,4 +51,21 @@ class AppConstants {
     'November',
     'December',
   ];
+
+  static const TextStyle label = TextStyle(fontSize: 14, fontWeight: .bold);
+
+  static const TextStyle error = TextStyle(
+    fontSize: 14,
+    fontWeight: .bold,
+    color: AppColors.error,
+  );
+  static const TextStyle labelBolder = TextStyle(
+    fontSize: 14,
+    fontWeight: .w700,
+  );
+  static const TextStyle heading3 = TextStyle(fontSize: 18, fontWeight: .bold);
+  static const TextStyle dropdownInitalValue = TextStyle(
+    fontSize: 16,
+    fontWeight: .bold,
+  );
 }

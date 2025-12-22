@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:rivu/models/search_transaction.dart';
 import 'package:rivu/models/store.dart';
 import 'package:rivu/models/transaction.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +34,41 @@ class TransactionProvider extends ChangeNotifier {
   String? _errorMessageStores;
   String? get errorMessageStores => _errorMessageStores;
 
+  CategoryModel? _selectedCategory;
+  CategoryModel? get selectedCategory => _selectedCategory;
+
+  StoreModel? _selectedStore;
+  StoreModel? get selectedStore => _selectedStore;
+
   void setCurrentUser(String userId) {
     _currentUserId = userId;
+  }
+
+  void setSelectedCategory(CategoryModel category) {
+    _selectedCategory = categories.firstWhere(
+      (cat) => cat.name.toLowerCase() == category.name.toLowerCase(),
+    );
+  }
+
+  void setDefaultSelectedCategory() {
+    _selectedCategory = categories.firstWhere(
+      (categiry) => categiry.id == _selectedStore!.defaultCategoryId,
+    );
+  }
+
+  void setDefaultSelectedStore() {
+    _selectedStore = stores.isEmpty
+        ? null
+        : stores.reduce(
+            (currentHighest, nextStore) =>
+                nextStore.usageCount! > currentHighest.usageCount!
+                ? nextStore
+                : currentHighest,
+          );
+  }
+
+  void setSelectedStoreById(String id) {
+    _selectedStore = stores.firstWhere((store) => store.id == id);
   }
 
   String? get currentUserId => _currentUserId;
@@ -42,6 +78,34 @@ class TransactionProvider extends ChangeNotifier {
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
+
+  List<SearchTransactionModel> _searchResults = [];
+  String? _storeFilter;
+  String? _categoryFilter;
+  double _minRank = 0.0;
+
+  List<SearchTransactionModel> get filteredSearchResults {
+    return _searchResults.where((tx) {
+      return (tx.isHighRank || _minRank == 0) &&
+          (_storeFilter == null || tx.matchesStore(_storeFilter!)) &&
+          (_categoryFilter == null || tx.matchesCategory(_categoryFilter!));
+    }).toList();
+  }
+
+  void setStoreFilter(String? store) {
+    _storeFilter = store;
+    notifyListeners();
+  }
+
+  void setCategoryFilter(String? category) {
+    _categoryFilter = category;
+    notifyListeners();
+  }
+
+  void setMinRank(double rank) {
+    _minRank = rank;
+    notifyListeners();
+  }
 
   Future<void> fetchUserData(String userId) async {
     _isLoading = true;
@@ -75,9 +139,31 @@ class TransactionProvider extends ChangeNotifier {
           .from('transactions')
           .select()
           .eq('user_id', supabase.auth.currentUser!.id)
-          .order('date', ascending: false);
+          .order('created_at', ascending: false);
 
       _transactions = data.map((row) => TransactionModel.fromMap(row)).toList();
+    } on PostgrestException catch (e) {
+      _errorMessage = e.message;
+    } catch (_) {
+      _errorMessage = 'Failed to load transactions';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future searchTranasctions(String query) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final data = await supabase.rpc(
+        'search_transactions',
+        params: {'query_text': query},
+      );
+      _searchResults = data
+          .map((row) => TransactionModel.fromMap(row))
+          .toList();
     } on PostgrestException catch (e) {
       _errorMessage = e.message;
     } catch (_) {
@@ -93,16 +179,17 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await supabase.from('transactions').insert(transaction.toMap());
+      await supabase.from('transactions').insert(transaction.toJson());
       await fetchTransactions();
       return true;
     } on PostgrestException catch (e) {
       _errorMessage = e.message;
-      debugPrint("addTransaction ${transaction.toMap()}");
+      debugPrint("addTransaction ${transaction.toJson()}");
       debugPrint(_errorMessage);
       notifyListeners();
       return false;
     } catch (_) {
+      debugPrint("addTransaction ${transaction.toJson()}");
       _errorMessage = 'Failed to add transaction';
       notifyListeners();
       return false;
@@ -114,7 +201,7 @@ class TransactionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await supabase.from('transactions').update(updated.toMap()).eq('id', id);
+      await supabase.from('transactions').update(updated.toJson()).eq('id', id);
 
       await fetchTransactions();
       return true;
@@ -188,7 +275,7 @@ class TransactionProvider extends ChangeNotifier {
       final store = _stores.firstWhere((s) => s.id == storeId);
       await supabase
           .from('stores')
-          .update({'usage_count': store.usageCount + 1})
+          .update({'usage_count': store.usageCount! + 1})
           .eq('id', storeId);
 
       // Refresh list
@@ -212,9 +299,12 @@ class TransactionProvider extends ChangeNotifier {
       await supabase.from('stores').insert({
         'user_id': currentUserId!,
         'name': name,
+        'default_category_id': _selectedCategory!.id,
       });
 
       await fetchStores(currentUserId!);
+      setDefaultSelectedStore();
+      setDefaultSelectedCategory();
       return true;
     } on PostgrestException catch (e) {
       _errorMessageStores = e.message;
@@ -235,6 +325,8 @@ class TransactionProvider extends ChangeNotifier {
     try {
       await supabase.from('stores').delete().eq('id', storeId);
       await fetchStores(currentUserId!);
+      setDefaultSelectedStore();
+      setDefaultSelectedCategory();
       return true;
     } on PostgrestException catch (e) {
       _errorMessageStores = e.message;
@@ -245,6 +337,30 @@ class TransactionProvider extends ChangeNotifier {
       notifyListeners();
     }
     return false;
+  }
+
+  Future<String> fetchStoreLogo(String name) async {
+    final client = HttpClient();
+    _errorMessageStores = null;
+    _isLoadingStores = true;
+    notifyListeners();
+
+    try {
+      var url = Uri.https(
+        "https://cdn.brandfetch.io/$name.com?c=1idpjjuA4YXBRQcVZ5n",
+      );
+      var response = await client.getUrl(url);
+      print("Resposne $response");
+      return "";
+    } on PostgrestException catch (e) {
+      _errorMessageStores = e.message;
+    } catch (e) {
+      _errorMessageStores = 'Failed to fetch store logo';
+    } finally {
+      _isLoadingStores = false;
+      notifyListeners();
+    }
+    return "";
   }
 
   Future<void> fetchAccounts() async {

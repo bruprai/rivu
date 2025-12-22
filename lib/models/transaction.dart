@@ -1,10 +1,12 @@
+import 'package:decimal/decimal.dart';
+
 class TransactionModel {
   final String? id;
   final String userId;
   final String? accountId;
   final String categoryId;
   final String storeId;
-  final double amount;
+  final Decimal amount;
   final String? description;
   final DateTime? createdAt;
   final String? receiptUrl;
@@ -21,21 +23,26 @@ class TransactionModel {
     this.receiptUrl,
   });
 
-  factory TransactionModel.fromMap(Map<String, dynamic> map) {
-    return TransactionModel(
-      id: map['id'] as String,
-      userId: map['user_id'] as String,
-      accountId: map['account_id'] as String,
-      categoryId: map['category_id'] as String,
-      storeId: map['store_id'] ?? '',
-      amount: map['amount'] as double,
-      description: map['description'] as String?,
-      createdAt: DateTime.parse(map['created_at'] as String),
-      receiptUrl: map['receipt_url'] as String?,
-    );
+  TransactionModel.fromMap(Map<String, dynamic> map)
+    : id = map['id']?.toString(),
+      userId = map['user_id']?.toString() ?? '',
+      accountId = map['account_id']?.toString(),
+      categoryId = map['category_id']?.toString() ?? '',
+      storeId = map['store_id']?.toString() ?? '',
+      amount = _parseDecimal(map['amount']),
+      description = map['description'] as String?,
+      createdAt = map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'].toString())
+          : null,
+      receiptUrl = map['receipt_url'] as String?;
+
+  static Decimal _parseDecimal(dynamic value) {
+    if (value == null) return Decimal.zero;
+    if (value is Decimal) return value;
+    return Decimal.parse(value.toString());
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'user_id': userId,
       'account_id': accountId,
@@ -43,7 +50,6 @@ class TransactionModel {
       'store_id': storeId,
       'amount': amount,
       'description': description,
-      'created_at': createdAt!.toIso8601String(),
       'receipt_url': receiptUrl,
     };
   }
@@ -54,8 +60,7 @@ class TransactionModel {
     String? accountId,
     String? categoryId,
     String? storeId,
-    double? amount,
-    DateTime? date,
+    Decimal? amount,
     String? description,
     DateTime? createdAt,
     String? receiptUrl,
@@ -66,7 +71,6 @@ class TransactionModel {
       accountId: accountId ?? this.accountId,
       categoryId: categoryId ?? this.categoryId,
       amount: amount ?? this.amount,
-
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
       receiptUrl: receiptUrl ?? this.receiptUrl,

@@ -1,8 +1,10 @@
+import 'package:decimal/decimal.dart';
 import 'package:rivu/core/app_constants.dart';
 import 'package:rivu/core/colors.dart';
 import 'package:rivu/models/store.dart';
 import 'package:rivu/models/transaction.dart';
 import 'package:rivu/theme_provider.dart';
+import 'package:rivu/widgets/manage_items_bottomsheet.dart';
 import 'package:rivu/widgets/manage_items_dialog.dart';
 import 'package:rivu/widgets/transaction_form.dart';
 import 'package:rivu/widgets/theme_toggle.dart';
@@ -100,20 +102,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   FloatingActionButton(
                     heroTag: "manage_accounts",
                     mini: true,
-                    onPressed: () => _showManageBottomSheet('Accounts'),
+                    onPressed: () => showManageBottomSheet(
+                      context: context,
+                      title: 'Accounts',
+                    ),
                     child: const Icon(Icons.account_balance_wallet),
-                  ),
-                  FloatingActionButton(
-                    heroTag: "manage_categories",
-                    mini: true,
-                    onPressed: () => _showManageBottomSheet('Categories'),
-                    child: const Icon(Icons.category),
-                  ),
-                  FloatingActionButton(
-                    heroTag: "manage_stores",
-                    mini: true,
-                    onPressed: () => _showManageBottomSheet('Stores'),
-                    child: const Icon(Icons.store),
                   ),
                 ],
               ),
@@ -165,12 +158,13 @@ class _HomeScreenState extends State<HomeScreen> {
       itemCount: txProvider.transactions.length,
       itemBuilder: (context, index) {
         final tx = txProvider.transactions[index];
+        final themeContext = Theme.of(context);
         return ListTile(
           leading: Container(
-            padding: EdgeInsets.all(9),
+            padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.surfaceDark,
+              color: themeContext.highlightColor,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -186,7 +180,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          title: Text(tx.description ?? 'No description'),
+          title: Text(
+            txProvider.stores
+                .firstWhere((store) => store.id == tx.storeId)
+                .name,
+          ),
           subtitle: Text(
             txProvider.categories
                 .firstWhere((category) => category.id == tx.categoryId)
@@ -196,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
           trailing: Text(
             _formatAmount(tx.amount),
             style: TextStyle(
-              color: tx.amount >= 0 ? AppColors.success : AppColors.error,
+              color: tx.amount >= Decimal.zero
+                  ? AppColors.success
+                  : AppColors.error,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -210,8 +210,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return '${date.day} ${AppConstants.months[date.month - 1]}';
   }
 
-  String _formatAmount(double amount) {
-    return '${amount >= 0 ? '+' : ''}\$${amount.abs().toStringAsFixed(2)}';
+  String _formatAmount(Decimal amount) {
+    return '${amount >= Decimal.zero ? '+' : ''}\$${amount.abs().toStringAsFixed(2)}';
   }
 
   void _showAddTransactionDialog(BuildContext context) {
@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   } else if (item is CategoryModel) {
                     return await txProvider.deleteCategory(item.id);
                   } else if (item is StoreModel) {
-                    return await txProvider.deleteStore(item.id);
+                    return await txProvider.deleteStore(item.id!);
                   }
                   return false;
                 },

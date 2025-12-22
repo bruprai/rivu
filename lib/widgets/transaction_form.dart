@@ -1,6 +1,7 @@
 // lib/widgets/glass_transaction_form.dart
 import 'dart:io';
 import 'dart:ui';
+import 'package:decimal/decimal.dart';
 import 'package:rivu/auth_provider.dart';
 import 'package:rivu/core/app_constants.dart';
 import 'package:rivu/models/store.dart';
@@ -8,6 +9,7 @@ import 'package:rivu/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:rivu/widgets/manage_items_bottomsheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/transaction.dart';
 import '../core/colors.dart';
@@ -35,9 +37,6 @@ class _TransactionFormState extends State<TransactionForm>
   late final TransactionProvider txProvider;
   late final AuthProvider authProvider;
 
-  DateTime _selectedDate = DateTime.now();
-  StoreModel? _selectedStore;
-  CategoryModel? _selectedCategory;
   String? receiptUrl;
   File? _receiptImage;
 
@@ -48,27 +47,13 @@ class _TransactionFormState extends State<TransactionForm>
     authProvider = context.read<AuthProvider>();
     _amountController.text = widget.transaction?.amount.abs().toString() ?? '';
     _descriptionController.text = widget.transaction?.description ?? '';
-    _selectedCategory = txProvider.categories.first;
-    _selectedStore = txProvider.stores.isEmpty
-        ? null
-        : txProvider.stores.reduce(
-            (currentHighest, nextStore) =>
-                nextStore.usageCount > currentHighest.usageCount
-                ? nextStore
-                : currentHighest,
-          );
 
+    txProvider.setDefaultSelectedStore();
+    txProvider.setDefaultSelectedCategory();
     if (widget.transaction?.storeId != null) {
-      _selectedStore = txProvider.stores.firstWhere(
-        (store) => store.id == widget.transaction!.storeId,
-      );
+      txProvider.setSelectedStoreById(widget.transaction!.storeId);
     }
-    if (_selectedStore?.defaultCategoryId != null &&
-        _selectedStore!.defaultCategoryId.isNotEmpty) {
-      _selectedCategory = txProvider.categories.firstWhere(
-        (categiry) => categiry.id == _selectedStore!.defaultCategoryId,
-      );
-    }
+
     receiptUrl = widget.transaction?.receiptUrl;
 
     _animationController = AnimationController(
@@ -96,15 +81,9 @@ class _TransactionFormState extends State<TransactionForm>
   }
 
   void _onStoreChanged(StoreModel? newStore) {
-    final txProvider = context.read<TransactionProvider>();
-
     setState(() {
-      _selectedStore = newStore;
-      if (_selectedStore?.defaultCategoryId != null) {
-        _selectedCategory = txProvider.categories.firstWhere(
-          (cat) => cat.id == _selectedStore!.defaultCategoryId,
-        );
-      }
+      txProvider.setSelectedStoreById(newStore!.id!);
+      txProvider.setDefaultSelectedCategory();
     });
   }
 
@@ -124,15 +103,15 @@ class _TransactionFormState extends State<TransactionForm>
 
     final txProvider = context.read<TransactionProvider>();
     final authProvider = context.read<AuthProvider>();
-    final amount = double.parse(_amountController.text);
+    final amount = Decimal.parse(_amountController.text);
 
     if (_receiptImage != null) {
       receiptUrl = await _uploadReceipt(_receiptImage!);
     }
     final transaction = TransactionModel(
       userId: authProvider.user!.id,
-      categoryId: _selectedCategory!.id,
-      storeId: _selectedStore!.id,
+      categoryId: txProvider.selectedCategory!.id,
+      storeId: txProvider.selectedStore!.id!,
       amount: amount,
       description: _descriptionController.text.isEmpty
           ? null
@@ -207,7 +186,7 @@ class _TransactionFormState extends State<TransactionForm>
                         height: MediaQuery.of(context).size.height * 0.75,
                         decoration: BoxDecoration(
                           gradient: AppConstants.bodyGradientForCategory(
-                            _selectedCategory!.name,
+                            txProvider.selectedCategory!.name,
                           ),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
@@ -238,7 +217,7 @@ class _TransactionFormState extends State<TransactionForm>
                               decoration: BoxDecoration(
                                 gradient:
                                     AppConstants.headerGradientForCategory(
-                                      _selectedCategory!.name,
+                                      txProvider.selectedCategory!.name,
                                     ),
                                 borderRadius: const BorderRadius.only(
                                   topLeft: Radius.circular(24),
@@ -306,22 +285,51 @@ class _TransactionFormState extends State<TransactionForm>
                                         // Description
                                         const SizedBox(height: 20),
 
-                                        DropdownButtonFormField<StoreModel>(
-                                          initialValue: _selectedStore,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Store',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          items: txProvider.stores.map((store) {
-                                            return DropdownMenuItem(
-                                              value: store,
-                                              child: Text(store.name),
-                                            );
-                                          }).toList(),
-                                          onChanged: _onStoreChanged,
-                                          validator: (value) => value == null
-                                              ? 'Select store'
-                                              : null,
+                                        Row(
+                                          spacing: 8,
+                                          children: [
+                                            Expanded(
+                                              child:
+                                                  DropdownButtonFormField<
+                                                    StoreModel
+                                                  >(
+                                                    initialValue: txProvider
+                                                        .selectedStore,
+                                                    decoration:
+                                                        const InputDecoration(
+                                                          labelText: 'Store',
+                                                          border:
+                                                              OutlineInputBorder(),
+                                                        ),
+                                                    items: txProvider.stores.map(
+                                                      (store) {
+                                                        return DropdownMenuItem(
+                                                          value: store,
+                                                          child: Text(
+                                                            store.name,
+                                                          ),
+                                                        );
+                                                      },
+                                                    ).toList(),
+                                                    onChanged: _onStoreChanged,
+                                                    validator: (value) =>
+                                                        value == null
+                                                        ? 'Select store'
+                                                        : null,
+                                                  ),
+                                            ),
+                                            IconButton.filled(
+                                              color: AppColors.logo,
+                                              onPressed: () =>
+                                                  showManageBottomSheet(
+                                                    context: context,
+                                                    title: 'Stores',
+                                                  ),
+                                              icon: Icon(
+                                                Icons.add_circle_outline,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         const SizedBox(height: 16),
                                         GlassTextField(
@@ -388,6 +396,20 @@ class _TransactionFormState extends State<TransactionForm>
                                               ),
                                           ],
                                         ),
+                                        txProvider.errorMessage == null
+                                            ? Container()
+                                            : Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 32.0,
+                                                ),
+                                                child: Center(
+                                                  child: Text(
+                                                    txProvider.errorMessage
+                                                        .toString(),
+                                                    style: AppConstants.error,
+                                                  ),
+                                                ),
+                                              ),
                                       ],
                                     ),
                                   ),
@@ -473,35 +495,6 @@ class _TransactionFormState extends State<TransactionForm>
       },
     );
   }
-
-  Widget _buildDropdown(
-    String label,
-    String? value,
-    Function(String?) onChanged,
-  ) {
-    return GlassDropdownButton<String>(
-      value: value,
-      hint: label,
-      items: [
-        DropdownMenuItem(value: 'Main Checking', child: Text('Main Checking')),
-        DropdownMenuItem(value: 'Cash', child: Text('Cash')),
-        DropdownMenuItem(value: 'Groceries', child: Text('Groceries')),
-        DropdownMenuItem(value: 'Rent', child: Text('Rent')),
-        DropdownMenuItem(value: 'Salary', child: Text('Salary')),
-      ],
-      onChanged: onChanged,
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    );
-    if (picked != null) setState(() => _selectedDate = picked);
-  }
 }
 
 // Reusable Glass TextField
@@ -536,7 +529,7 @@ class GlassTextField extends StatelessWidget {
     return GlassContainer(
       child: TextFormField(
         controller: controller,
-        maxLines: maxLines ?? 1,
+        maxLines: maxLines,
         keyboardType: keyboardType,
         readOnly: readOnly,
         onTap: onTap,
@@ -552,13 +545,13 @@ class GlassTextField extends StatelessWidget {
           ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: 20,
-            vertical: maxLines! > 1 ? 16 : 20,
+            vertical: maxLines > 1 ? 16 : 20,
           ),
         ),
         style: TextStyle(
           color: Colors.white,
-          fontSize: maxLines! > 1 ? 16 : 18,
-          fontWeight: maxLines! > 1 ? FontWeight.w400 : FontWeight.w500,
+          fontSize: maxLines > 1 ? 16 : 18,
+          fontWeight: maxLines > 1 ? FontWeight.w400 : FontWeight.w500,
         ),
       ),
     );
@@ -595,7 +588,6 @@ class GlassContainer extends StatelessWidget {
   }
 }
 
-// Reusable Glass Dropdown
 class GlassDropdownButton<T> extends StatelessWidget {
   final T? value;
   final String hint;

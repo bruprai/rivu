@@ -1,18 +1,18 @@
 class StoreModel {
-  final String id;
+  final String? id;
   final String userId;
-  final String defaultCategoryId;
+  final String? defaultCategoryId;
   final String name;
-  final int usageCount;
-  final DateTime createdAt;
+  final int? usageCount;
+  final DateTime? createdAt;
 
   StoreModel({
-    required this.id,
+    this.id,
     required this.userId,
     required this.name,
-    required this.usageCount,
-    required this.createdAt,
-    required this.defaultCategoryId,
+    this.usageCount,
+    this.createdAt,
+    this.defaultCategoryId,
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
