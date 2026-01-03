@@ -6,7 +6,7 @@ Efficient transaction management and tracking.
 
 ### I will be adding more features which are written down in projects notebook
 
-### I chose Proider as a state management solution for this application because of the simplicity and its a small project so no need to go overboard with MVVM which i mainly use in my large apps
+### I choose Provider as a state management solution for this application because of the simplicity and its a small project so no need to go overboard with MVVM which i mainly use in my large apps
 
 ### Used supabase because i just like working with it and have knowledge of postgresQL. Also don't need to worry about auth and storage as it includes all the necessary features.
 
