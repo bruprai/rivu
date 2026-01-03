@@ -2,6 +2,14 @@
 
 Efficient transaction management and tracking.
 
+## Always wanted to create this application where i can maintain my expenses and subs with different banking cards and accounts.
+
+### I will be adding more features which are written down in projects notebook
+
+### I chose Proider as a state management solution for this application because of the simplicity and its a small project so no need to go overboard with MVVM which i mainly use in my large apps
+
+### Used supabase because i just like working with it and have knowledge of postgresQL. Also don't need to worry about auth and storage as it includes all the necessary features.
+
 ## Features
 
 - **User Authentication:** Secure user authentication powered by **Supabase**. Users can sign up and sign in to manage their data.
@@ -34,3 +42,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+---
+
+## Custom made assets using Figma and canva for gifs and short mp4 videos
